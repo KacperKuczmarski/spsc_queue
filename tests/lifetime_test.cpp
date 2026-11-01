@@ -36,12 +36,12 @@ protected:
 } // namespace
 
 TEST_F(QueueLifetimeTest, EmptyQueueConstructsNoElements) {
-    kuczmars::SPSCQueue<Tracked, 8> q;
+    kuczmars::SPSCQueue<Tracked> q(8);
     EXPECT_EQ(Tracked::alive, 0);
 }
 
 TEST_F(QueueLifetimeTest, PushConstructsExactlyOneElement) {
-    kuczmars::SPSCQueue<Tracked, 4> q;
+    kuczmars::SPSCQueue<Tracked> q(4);
     ASSERT_TRUE(q.try_emplace(1));
     EXPECT_EQ(Tracked::alive, 1);
 
@@ -51,14 +51,14 @@ TEST_F(QueueLifetimeTest, PushConstructsExactlyOneElement) {
 }
 
 TEST_F(QueueLifetimeTest, RejectedPushConstructsNothing) {
-    kuczmars::SPSCQueue<Tracked, 1> q;
+    kuczmars::SPSCQueue<Tracked> q(1);
     ASSERT_TRUE(q.try_emplace(1));
     ASSERT_FALSE(q.try_emplace(2));
     EXPECT_EQ(Tracked::alive, 1);
 }
 
 TEST_F(QueueLifetimeTest, TryPopDestroysSlotElement) {
-    kuczmars::SPSCQueue<Tracked, 4> q;
+    kuczmars::SPSCQueue<Tracked> q(4);
     ASSERT_TRUE(q.try_emplace(1));
     {
         auto v = q.try_pop();
@@ -70,7 +70,7 @@ TEST_F(QueueLifetimeTest, TryPopDestroysSlotElement) {
 }
 
 TEST_F(QueueLifetimeTest, PopDestroysFrontElement) {
-    kuczmars::SPSCQueue<Tracked, 4> q;
+    kuczmars::SPSCQueue<Tracked> q(4);
     ASSERT_TRUE(q.try_emplace(1));
     ASSERT_TRUE(q.try_emplace(2));
     q.pop();
@@ -82,7 +82,7 @@ TEST_F(QueueLifetimeTest, PopDestroysFrontElement) {
 
 TEST_F(QueueLifetimeTest, DestructorDestroysRemainingElements) {
     {
-        kuczmars::SPSCQueue<Tracked, 4> q;
+        kuczmars::SPSCQueue<Tracked> q(4);
         ASSERT_TRUE(q.try_emplace(1));
         ASSERT_TRUE(q.try_emplace(2));
         ASSERT_TRUE(q.try_emplace(3));
@@ -93,7 +93,7 @@ TEST_F(QueueLifetimeTest, DestructorDestroysRemainingElements) {
 
 TEST_F(QueueLifetimeTest, DestructorDestroysRemainingElementsAfterWraparound) {
     {
-        kuczmars::SPSCQueue<Tracked, 3> q;
+        kuczmars::SPSCQueue<Tracked> q(3);
         for (int i = 0; i < 3; ++i) {
             ASSERT_TRUE(q.try_emplace(i));
         }
@@ -110,7 +110,7 @@ TEST_F(QueueLifetimeTest, DestructorDestroysRemainingElementsAfterWraparound) {
 }
 
 TEST_F(QueueLifetimeTest, ManyLapsKeepElementCountBalanced) {
-    kuczmars::SPSCQueue<Tracked, 5> q;
+    kuczmars::SPSCQueue<Tracked> q(5);
     for (int i = 0; i < 1000; ++i) {
         ASSERT_TRUE(q.try_emplace(i));
         if (i % 3 != 0) {
